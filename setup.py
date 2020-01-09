@@ -4,7 +4,7 @@ with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name='brats-toolkit',
+    name='brats_toolkit',
     version='0.2',
     author='Christoph Berger, Florian Kofler',
     author_email='c.berger@tum.de',
