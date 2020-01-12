@@ -40,6 +40,6 @@ except Exception as e:
     print('Error occurred: ' + str(e))
     pass
 print('Test 7')
-seg.segment(t1=t1, t1c=t1c, t2=t2, fla=flair, cid='mav', outputPath=outpath)
+seg.segment(t1=t1, t1c=t1c, t2=t2, fla=flair, cid='mav', outputPath='/Users/christoph/Documents/Uni/HiWi/IBBM/Testdata/outputForOrc/mav_fusion.nii.gz')
 print('Test 8')
-seg.segment(t1=t1, t1c=t1c, t2=t2, fla=flair, cid='mocker2', outputPath=outpath)
+#seg.segment(t1=t1, t1c=t1c, t2=t2, fla=flair, cid='mocker2', outputPath=outpath)

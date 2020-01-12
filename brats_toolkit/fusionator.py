@@ -83,8 +83,12 @@ class Fusionator(object):
         if self.verbose:
             print ('Number of segmentations to be fused using compound majority vote is: ', num)
         # if no labels are passed, get the labels from the first input file (might lead to misisng labels!)
-        if labels==None:
+        if labels == None:
             labels = np.unique(candidates[0])
+            for c in candidates:
+                labels = np.append(labels, np.unique(c))
+                print('Labels of current candidate: {}, dtype: {}'.format(np.unique(c), c.dtype))
+            labels = np.unique(labels).astype(int)
             logging.warning('No labels passed, choosing those labels automatically: {}'.format(labels))
         # remove background label
         if 0 in labels:
@@ -93,9 +97,10 @@ class Fusionator(object):
         temp = candidates[0]
         result = np.zeros(temp.shape)
         #loop through all available segmentations and tally votes for each class
-        print(labels)
+        print('Labels: {}'.format(labels))
         for l in sorted(labels, reverse=True):
             label = np.zeros(temp.shape)
+            num = 0
             for c, w in zip(candidates, weights):
                 print('weight is: ' + str(w))
                 label[c == l] += 1.0*w
@@ -203,7 +208,7 @@ class Fusionator(object):
                                                 result.min(), result.dtype)
         return result
 
-    def dirFuse(self, directory, method='mav', outputName=None):
+    def dirFuse(self, directory, method='mav', outputName=None, labels=None):
         '''
         dirFuse [summary]
         
@@ -231,7 +236,7 @@ class Fusionator(object):
                     print('Could not load this file: ' + file + ' \nPlease check if this is a valid path and that the files exists. Exception: ' + e)
         if method == 'mav':
             print('Orchestra: Now fusing all .nii.gz files in directory {} using MAJORITY VOTING. For more output, set the -v or --verbose flag or instantiate the fusionator class with verbose=true'.format(directory))
-            result = self.mav(candidates, weights)
+            result = self.mav(candidates, labels, weights)
         elif method == 'simple':
             print('Orchestra: Now fusing all .nii.gz files in directory {} using SIMPLE. For more output, set the -v or --verbose flag or instantiate the fusionator class with verbose=true'.format(directory))
             result = self.simple(candidates, weights)
