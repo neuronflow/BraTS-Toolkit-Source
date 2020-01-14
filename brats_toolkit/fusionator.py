@@ -252,7 +252,7 @@ class Fusionator(object):
             print('Very bad, this should also be logged somewhere: ' + str(e))
             logging.exception('Issues while saving the resulting segmentation: {}'.format(str(e)))
     
-    def fuse(self, segmentations, outputPath, method='mav', weights=None):
+    def fuse(self, segmentations, outputPath, method='mav', weights=None, labels=None):
         '''
         fuse [summary]
         
@@ -284,7 +284,7 @@ class Fusionator(object):
                     raise
         if method == 'mav':
             print('Orchestra: Now fusing all passed .nii.gz files using MAJORITY VOTING. For more output, set the -v or --verbose flag or instantiate the fusionator class with verbose=true')
-            result = self.mav(candidates, weights)
+            result = self.mav(candidates, labels=labels, weights=weights)
         elif method == 'simple':
             print('Orchestra: Now fusing all passed .nii.gz files in using SIMPLE. For more output, set the -v or --verbose flag or instantiate the fusionator class with verbose=true')
             result = self.simple(candidates, weights)
