@@ -9,6 +9,8 @@ t2 = '/Users/christoph/Documents/Uni/HiWi/IBBM/Testdata/BraTS19_CBICA_AQV_1/t2.n
 t1c ='/Users/christoph/Documents/Uni/HiWi/IBBM/Testdata/BraTS19_CBICA_AQV_1/t1ce.nii.gz'
 flair = '/Users/christoph/Documents/Uni/HiWi/IBBM/Testdata/BraTS19_CBICA_AQV_1/flair.nii.gz'
 outpath = '/Users/christoph/Documents/Uni/HiWi/IBBM/Testdata/outputForOrc/file.nii.gz'
+print('Test 0')
+fus.dirFuse('/Users/christoph/Downloads/georg_prokop_segmented_2patients/segmented/1f35ae353834bd3fcd23b858d143ad7e505c1a281382f38c5e94c31e05956c7c/candidate_segmentations')
 print('Test 1')
 seg.segment(t1, t1c, t2, flair, cid='mav', outputPath=outpath)
 print('Test 2')
@@ -23,6 +25,7 @@ print('Test 4')
 segs = ['/Users/christoph/Desktop/brats_test/BraTS19_Testing_001_mars.nii.gz', '/Users/christoph/Desktop/brats_test/BraTS19_Testing_001_scan.nii.gz', '/Users/christoph/Desktop/brats_test/BraTS19_Testing_001_zyx.nii.gz']
 weights=[1,2,1]
 fus.fuse(segs, '/Users/christoph/Desktop/brats_test/BraTS19_Testing_fusion_weighted.nii.gz', method='simple', weights=weights)
+fus.fuse(segs, '/Users/christoph/Desktop/brats_test/BraTS19_Testing_fusion_mav.nii.gz', method='mav')
 print('Test 5')
 # should error out on weight
 weights.append(3)

@@ -210,7 +210,7 @@ class Fusionator(object):
 
     def dirFuse(self, directory, method='mav', outputName=None, labels=None):
         '''
-        dirFuse [summary]
+        dirFuse [summary] 
         
         Args:
             directory ([type]): [description]
@@ -284,10 +284,10 @@ class Fusionator(object):
                     raise
         if method == 'mav':
             print('Orchestra: Now fusing all passed .nii.gz files using MAJORITY VOTING. For more output, set the -v or --verbose flag or instantiate the fusionator class with verbose=true')
-            result = self.mav(candidates, labels=labels, weights=weights)
+            result = self.mav(candidates, labels=labels, weights=w_weights)
         elif method == 'simple':
             print('Orchestra: Now fusing all passed .nii.gz files in using SIMPLE. For more output, set the -v or --verbose flag or instantiate the fusionator class with verbose=true')
-            result = self.simple(candidates, weights)
+            result = self.simple(candidates, w_weights)
         try:
             outputDir = op.dirname(outputPath)
             os.makedirs(outputDir, exist_ok=True)
