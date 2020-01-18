@@ -113,6 +113,101 @@ class Fusionator(object):
                                             result.min(), result.dtype)
         return result
 
+    def brats_simple(self, candidates, weights=None, t=0.05, stop=25, inc=0.07, method='dice', iterations=25):
+        '''
+        BRATS DOMAIN ADAPTED!!!!! simple implementation using DICE scoring
+        Iteratively estimates the accuracy of the segmentations and dynamically assigns weights 
+        for the next iteration. Continues for each label until convergence is reached. 
+
+        Args:
+            candidates (list): [description]
+            weights (list, optional): [description]. Defaults to None.
+            t (float, optional): [description]. Defaults to 0.05.
+            stop (int, optional): [description]. Defaults to 25.
+            inc (float, optional): [description]. Defaults to 0.07.
+            method (str, optional): [description]. Defaults to 'dice'.
+            iterations (int, optional): [description]. Defaults to 25.
+            labels (list, optional): [description]. Defaults to None.
+        
+        Raises:
+            IOError: If no segmentations to be fused are passed
+        
+        Returns:
+            array: a numpy array with the SIMPLE fusion result
+        '''
+        # manage empty calls
+        num = len(candidates)
+        if num == 0:
+            print('ERROR! No segmentations to fuse.')
+            raise IOError('No valid segmentations passed for SIMPLE Fusion')
+        if self.verbose:
+            print ('Number of segmentations to be fused using SIMPLE is: ', num)
+        # handle unpassed weights
+        if weights == None:
+            weights = itertools.repeat(1,num)
+        backup_weights = weights # ugly save to reset weights after each round
+        # get unique labels for multi-class fusion
+        
+        result = np.zeros(candidates[0].shape)
+        labels = [2,1,4]
+        logging.info('Fusing a segmentation with the labels: {}'.format(labels))
+        # loop over each label
+        for l in labels:
+            if self.verbose:
+                print('Currently fusing label {}'.format(l))
+            # load first segmentation and use it to create initial numpy arrays IFF it contains labels
+            if l == 2:
+                # whole tumor
+                bin_candidates = [(c > 0).astype(int) for c in candidates]
+            elif l == 1: 
+                # tumor core
+                bin_candidates = [((c == 1) | (c == 4)).astype(int) for c in candidates]
+            else: 
+                #active tumor
+                bin_candidates = [(c == 4).astype(int) for c in candidates]
+            if self.verbose:
+                print(bin_candidates[0].shape)
+            # baseline estimate
+            estimate = self.binaryMav(bin_candidates, weights)
+            #initial convergence baseline
+            conv = np.sum(estimate)
+            # check if the estimate was reasonable
+            if conv == 0:
+                logging.error('Majority Voting in SIMPLE returned an empty array')
+                # return np.zeros(candidates[0].shape)
+            # reset tau before each iteration
+            tau = t
+            for i in range(iterations):
+                t_weights = [] # temporary weights
+                for c in bin_candidates:
+                    # score all canidate segmentations
+                    t_weights.append((self._score(c, estimate, method)+1)**2) #SQUARED DICE!
+                weights = t_weights
+                # save maximum score in weights
+                max_phi = max(weights)
+                # remove dropout estimates
+                bin_candidates = [c for c, w in zip(bin_candidates, weights) if (w > t*max_phi)]
+                # calculate new estimate
+                estimate = self.binaryMav(bin_candidates, weights)
+                # increment tau 
+                tau = tau+inc
+                # check if it converges
+                if np.abs(conv-np.sum(estimate)) < stop:
+                    if self.verbose: 
+                        print('Convergence for label {} after {} iterations reached.'.format(l, i))
+                    break
+                conv = np.sum(estimate)
+            # assign correct label to result
+            result[estimate == 1] = l
+            # reset weights
+            weights = backup_weights
+        if self.verbose:
+            print('Shape of result:', result.shape)
+            print('Shape of current input array:', bin_candidates[0].shape)
+            print('Labels and datatype of current output:', result.max(), 
+                                                result.min(), result.dtype)
+        return result
+
     def simple(self, candidates, weights=None, t=0.05, stop=25, inc=0.07, method='dice', iterations=25, labels=None):
         '''
         simple implementation using DICE scoring
@@ -208,7 +303,7 @@ class Fusionator(object):
                                                 result.min(), result.dtype)
         return result
 
-    def dirFuse(self, directory, method='mav', outputName=None, labels=None):
+    def dirFuse(self, directory, method='mav', outputPath=None, labels=None):
         '''
         dirFuse [summary] 
         
@@ -240,13 +335,16 @@ class Fusionator(object):
         elif method == 'simple':
             print('Orchestra: Now fusing all .nii.gz files in directory {} using SIMPLE. For more output, set the -v or --verbose flag or instantiate the fusionator class with verbose=true'.format(directory))
             result = self.simple(candidates, weights)
+        elif method == 'brats-simple':
+            print('Orchestra: Now fusing all .nii.gz files in directory {} using BRATS-SIMPLE. For more output, set the -v or --verbose flag or instantiate the fusionator class with verbose=true'.format(directory))
+            result = self.brats_simple(candidates, weights)
         try:
-            if outputName == None:
+            if outputPath == None:
                 oitk.write_itk_image(oitk.make_itk_image(result, proto_image=oitk.get_itk_image(temp)), op.join(directory, method + '_fusion.nii.gz'))
             else:
-                outputDir = op.dirname(outputName)
+                outputDir = op.dirname(outputPath)
                 os.makedirs(outputDir, exist_ok=True)
-                oitk.write_itk_image(oitk.make_itk_image(result, proto_image=oitk.get_itk_image(temp)), outputName)
+                oitk.write_itk_image(oitk.make_itk_image(result, proto_image=oitk.get_itk_image(temp)), outputPath)
             logging.info('Segmentation Fusion with method {} saved in directory {}.'.format(method, directory))
         except Exception as e:
             print('Very bad, this should also be logged somewhere: ' + str(e))
@@ -288,6 +386,9 @@ class Fusionator(object):
         elif method == 'simple':
             print('Orchestra: Now fusing all passed .nii.gz files in using SIMPLE. For more output, set the -v or --verbose flag or instantiate the fusionator class with verbose=true')
             result = self.simple(candidates, w_weights)
+        elif method == 'brats-simple':
+            print('Orchestra: Now fusing all .nii.gz files in directory {} using BRATS-SIMPLE. For more output, set the -v or --verbose flag or instantiate the fusionator class with verbose=true'.format(directory))
+            result = self.brats_simple(candidates, w_weights)
         try:
             outputDir = op.dirname(outputPath)
             os.makedirs(outputDir, exist_ok=True)

@@ -9,8 +9,8 @@ t2 = '/Users/christoph/Documents/Uni/HiWi/IBBM/Testdata/BraTS19_CBICA_AQV_1/t2.n
 t1c ='/Users/christoph/Documents/Uni/HiWi/IBBM/Testdata/BraTS19_CBICA_AQV_1/t1ce.nii.gz'
 flair = '/Users/christoph/Documents/Uni/HiWi/IBBM/Testdata/BraTS19_CBICA_AQV_1/flair.nii.gz'
 outpath = '/Users/christoph/Documents/Uni/HiWi/IBBM/Testdata/outputForOrc/file.nii.gz'
-print('Test 0')
-fus.dirFuse('/Users/christoph/Downloads/georg_prokop_segmented_2patients/segmented/1f35ae353834bd3fcd23b858d143ad7e505c1a281382f38c5e94c31e05956c7c/candidate_segmentations')
+print('Test 0 - BRATS MODE')
+fus.dirFuse('/Users/christoph/Desktop/brats_test/', method='brats-simple')
 print('Test 1')
 seg.segment(t1, t1c, t2, flair, cid='mav', outputPath=outpath)
 print('Test 2')

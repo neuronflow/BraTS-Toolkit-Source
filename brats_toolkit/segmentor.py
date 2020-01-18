@@ -163,7 +163,7 @@ class Segmentor(object):
                 self._handleResult(cid, resultsDir, outputPath=saveLocation)
             else:
                 logging.exception('Container run for CID {} failed!'.format(cid))
-        fusion.dirFuse(outputDir, method=method, outputName=op.join(outputDir, outputName))
+        fusion.dirFuse(outputDir, method=method, outputPath=op.join(outputDir, outputName))
     
     def singleSegment(self, tempDir, inputs, cid, outputName, outputDir):
         '''
