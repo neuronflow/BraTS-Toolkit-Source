@@ -387,7 +387,7 @@ class Fusionator(object):
             print('Orchestra: Now fusing all passed .nii.gz files in using SIMPLE. For more output, set the -v or --verbose flag or instantiate the fusionator class with verbose=true')
             result = self.simple(candidates, w_weights)
         elif method == 'brats-simple':
-            print('Orchestra: Now fusing all .nii.gz files in directory {} using BRATS-SIMPLE. For more output, set the -v or --verbose flag or instantiate the fusionator class with verbose=true'.format(directory))
+            print('Orchestra: Now fusing all .nii.gz files in directory {} using BRATS-SIMPLE. For more output, set the -v or --verbose flag or instantiate the fusionator class with verbose=true')
             result = self.brats_simple(candidates, w_weights)
         try:
             outputDir = op.dirname(outputPath)
