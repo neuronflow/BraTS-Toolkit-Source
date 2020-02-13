@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 # check if parameter is present
-if [ $# -eq 0 ]
-  then
-    echo "You must enter the number of desired workers and 5 paths!, e.g. docker_run.sh 2 /setting /dicom_import /nifti_export /exam_import /exam_export"
-    exit 1
+if [ $# -eq 0 ]; then
+  echo "You must enter the number of desired workers and 5 paths!, e.g. docker_run.sh 2 /setting /dicom_import /nifti_export /exam_import /exam_export"
+  exit 1
 fi
 docker stop greedy_elephant
-docker run --rm -d --name=greedy_elephant --gpus all -p 5000:5000 -p 9181:9181 -v "$2":"/data/import/dicom_import" -v "$3":"/data/export/nifti_export" -v "$4":"/data/import/exam_import" -v "$5":"/data/export/exam_export" projectelephant/server redis-server
+docker run --rm -d --name=greedy_elephant --user $(id -u):$(id -g) --gpus all -p 5000:5000 -p 9181:9181 -v "$2":"/data/import/dicom_import" -v "$3":"/data/export/nifti_export" -v "$4":"/data/import/exam_import" -v "$5":"/data/export/exam_export" projectelephant/server redis-server
 #wait until everything is started up
 sleep 10
 #start x-server for non-gui gui

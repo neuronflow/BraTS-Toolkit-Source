@@ -278,6 +278,12 @@ class Segmentor(object):
             logging.error('[Weborchestra - Filehandling][Warning] Multiple Segmentations Found')
             print('found files: {}'.format(contents))
             img = oitk.get_itk_image(contents[0])
+            outputDir = op.dirname(outputPath)
+            outputName = op.basename(outputPath)
+            for i, c in enumerate(contents): 
+                img = oitk.get_itk_image(c)
+                oitk.write_itk_image(img, op.join(outputDir, str(i) + '_' + outputName))
+            return
         img = oitk.get_itk_image(contents[0])
         for c in contents:
             os.remove(op.join(directory,c))
