@@ -63,7 +63,16 @@ def start_docker(exam_import_folder=None,
 
 
 def stop_docker():
+    # stop it
     readableCmd = "docker stop greedy_elephant"
+    command = shlex.split(readableCmd)
+
+    cwd = pathlib.Path(__file__).resolve().parent
+
+    print("stopping docker with command:", readableCmd)
+    subprocess.run(command, cwd=cwd)
+    # remove it
+    readableCmd = "docker rm greedy_elephant"
     command = shlex.split(readableCmd)
 
     cwd = pathlib.Path(__file__).resolve().parent
