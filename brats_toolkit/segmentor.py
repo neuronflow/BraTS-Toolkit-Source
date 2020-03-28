@@ -39,11 +39,11 @@ class Segmentor(object):
         self.verbose = verbose
         self.tty = tty
         self.dockerGPU = newdocker
-        self.gpu =gpu
+        self.gpu = gpu
         self.package_directory = op.dirname(op.abspath(__file__))
         # set environment variables to limit GPU usage
         os.environ['CUDA_DEVICE_ORDER']='PCI_BUS_ID'   # see issue #152
-        os.environ['CUDA_VISIBLE_DEVICES']=gpu
+        os.environ['CUDA_VISIBLE_DEVICES']= gpu
         if config is None: 
             config = op.join(self.package_directory, 'config', 'dockers.json')
         if fileformats is None:
@@ -278,11 +278,14 @@ class Segmentor(object):
             logging.error('[Weborchestra - Filehandling][Warning] Multiple Segmentations Found')
             print('found files: {}'.format(contents))
             img = oitk.get_itk_image(contents[0])
-            outputDir = op.dirname(outputPath)
-            outputName = op.basename(outputPath)
-            for i, c in enumerate(contents): 
+            labels = 0
+            exportImg = None
+            for _ , c in enumerate(contents): 
                 img = oitk.get_itk_image(c)
-                oitk.write_itk_image(img, op.join(outputDir, str(i) + '_' + outputName))
+                if labels < len(np.unique(oitk.get_itk_array(img))):
+                    exportImg = img
+                    labels = len(np.unique(oitk.get_itk_array(img)))
+            oitk.write_itk_image(exportImg, op.join(outputPath))
             return
         img = oitk.get_itk_image(contents[0])
         for c in contents:
