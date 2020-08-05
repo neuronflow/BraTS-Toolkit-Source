@@ -27,14 +27,14 @@ def list_docker_gpu():
     seg = segmentor.Segmentor()
     print('all these images support GPU computations:')
     for id in seg.config.keys():
-        if id['runtime'] == 'nvidia':
+        if seg.config[id]['runtime'] == 'nvidia':
             print(id)
 
 def list_docker_cpu():
     seg = segmentor.Segmentor()
     print('all these images support CPU computations:')
     for id in seg.config.keys():
-        if id['runtime'] == 'runc':
+        if seg.config[id]['runtime'] == 'runc':
             print(id)
 
 def fusion():
@@ -140,6 +140,8 @@ def batchpreprocess():
                         help = 'If passed, the container will ask for confirmation')
     parser.add_argument('-g', '--gpu', action='store_true',
                         help = 'Pass this flag if you want to use GPU computations.')
+    parser.add_argument('-gi', '--gpuid',
+                        help = 'Specify the GPU bus ID to be used.')
     try:
         args = parser.parse_args()
     except SystemExit as e:
@@ -153,7 +155,11 @@ def batchpreprocess():
             mode = "gpu"
         else:
             mode = "cpu"
-        pre.batch_preprocess(exam_import_folder=args.input, exam_export_folder=args.output, mode=mode, confirm=args.confirm, skipUpdate=args.skipUpdate)
+        if args.gpuid: 
+            gpuid = str(args.gpuid)
+        else:
+            gpuid = '0'
+        pre.batch_preprocess(exam_import_folder=args.input, exam_export_folder=args.output, mode=mode, confirm=args.confirm, skipUpdate=args.skipUpdate, gpuid=gpuid)
     except subprocess.CalledProcessError as e:
         # Ignoring errors happening in the Docker Process, otherwise we'd e.g. get error messages on exiting the Docker via CTRL+D.
         pass
@@ -178,6 +184,8 @@ def singlepreprocess():
                         help = 'If passed, the container will ask for confirmation')
     parser.add_argument('-g', '--gpu', action='store_true',
                         help = 'Pass this flag if you want to use GPU computations.')
+    parser.add_argument('-gi', '--gpuid',
+                        help = 'Specify the GPU bus ID to be used.')
     try:
         args = parser.parse_args()
     except SystemExit as e:
@@ -190,8 +198,12 @@ def singlepreprocess():
         if args.gpu: 
             mode = "gpu"
         else:
-            mode = "cpu"
-        pre.single_preprocess(t1File=args.t1, t1cFile=args.t1c, t2File=args.t2, flaFile=args.fla, outputFolder=args.output, mode=mode, confirm=args.confirm, skipUpdate=args.skipUpdate)
+            mode = "cpu"       
+        if args.gpuid: 
+            gpuid = str(args.gpuid)
+        else:
+            gpuid = '0'
+        pre.single_preprocess(t1File=args.t1, t1cFile=args.t1c, t2File=args.t2, flaFile=args.fla, outputFolder=args.output, mode=mode, confirm=args.confirm, skipUpdate=args.skipUpdate, gpuid=gpuid)
     except subprocess.CalledProcessError as e:
         # Ignoring errors happening in the Docker Process, otherwise we'd e.g. get error messages on exiting the Docker via CTRL+D.
         pass

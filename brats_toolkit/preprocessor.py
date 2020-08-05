@@ -80,7 +80,7 @@ class Preprocessor(object):
             print("image processing status reveived:")
             print(data['examid'], ": ", data['ipstatus'])
 
-    def single_preprocess(self, t1File, t1cFile, t2File, flaFile, outputFolder, mode, confirm=False, skipUpdate=False):
+    def single_preprocess(self, t1File, t1cFile, t2File, flaFile, outputFolder, mode, confirm=False, skipUpdate=False, gpuid='0'):
         # assign name to file
         print("basename:", os.path.basename(outputFolder))
         outputPath = Path(outputFolder)
@@ -88,6 +88,7 @@ class Preprocessor(object):
 
         # create temp dir
         storage = tempfile.TemporaryDirectory()
+        os.chmod(storage.name, 0o777)
         dockerFolder = os.path.abspath(storage.name)
         tempFolder = os.path.join(dockerFolder, os.path.basename(outputFolder))
 
@@ -101,11 +102,11 @@ class Preprocessor(object):
         tempFiler(flaFile, "fla", tempFolder)
 
         self.batch_preprocess(exam_import_folder=dockerFolder, exam_export_folder=dockerOutputFolder, mode=mode,
-                              confirm=confirm, skipUpdate=skipUpdate)
+                              confirm=confirm, skipUpdate=skipUpdate, gpuid=gpuid)
 
     def batch_preprocess(self, exam_import_folder=None, exam_export_folder=None, dicom_import_folder=None,
                          nifti_export_folder=None,
-                         mode="cpu", confirm=True, skipUpdate=False):
+                         mode="cpu", confirm=True, skipUpdate=False, gpuid='0'):
         if confirm != True:
             self.confirmationRequired = False
         self.mode = mode

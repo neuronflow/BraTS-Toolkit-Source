@@ -6,13 +6,12 @@ import os
 
 
 def start_docker(exam_import_folder=None,
-                 exam_export_folder=None, dicom_import_folder=None, nifti_export_folder=None, mode="cpu"):
+                 exam_export_folder=None, dicom_import_folder=None, nifti_export_folder=None, mode="cpu", gpuid='0'):
     # deal with missing arguments
     if dicom_import_folder is None:
         dicom_import_folder = exam_import_folder
     if nifti_export_folder is None:
         nifti_export_folder = exam_export_folder
-
     if exam_import_folder is None:
         exam_import_folder = dicom_import_folder
     if exam_export_folder is None:

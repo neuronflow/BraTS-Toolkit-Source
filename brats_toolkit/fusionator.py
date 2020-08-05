@@ -426,24 +426,24 @@ class Fusionator(object):
             print('Value error encountered!')
             return 0
         # faster dice? Oh yeah!
-        if method is 'dice':
+        if method == 'dice':
             # default dice score
             score = 2*TP/(2*TP+FP+FN)
-        elif method is 'auc':
+        elif method == 'auc':
             # AUC scoring
             score = 1 - (FPR+FNR)/2
-        elif method is 'bdice':
+        elif method == 'bdice':
             # biased dice towards false negatives
             score = 2*TP/(2*TP+FN)
-        elif method is 'spec':
+        elif method == 'spec':
             #specificity
             score = TN/(TN+FP)
-        elif method is 'sens':
+        elif method == 'sens':
             # sensitivity
             score = TP/(TP+FN)
-        elif method is 'toterr':
+        elif method == 'toterr':
             score = (FN+FP)/(155*240*240)
-        elif method is 'ppv':
+        elif method == 'ppv':
             prev = np.sum(gt)/(155*240*240)
             temp = TPR*prev
             score = (temp)/(temp + (1-TNR)*(1-prev))

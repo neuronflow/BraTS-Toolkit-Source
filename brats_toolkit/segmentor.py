@@ -14,6 +14,8 @@ import subprocess
 import os
 import errno
 import sys
+
+
 import tempfile
 import glob
 import logging
@@ -30,6 +32,7 @@ class Segmentor(object):
     '''
     Now does it all!
     '''
+
     def __init__(self, config=None, fileformats=None, verbose=True, tty=False, newdocker=True, gpu='0'):
         ''' Init the orchestra class with placeholders
         '''
@@ -42,12 +45,13 @@ class Segmentor(object):
         self.gpu = gpu
         self.package_directory = op.dirname(op.abspath(__file__))
         # set environment variables to limit GPU usage
-        os.environ['CUDA_DEVICE_ORDER']='PCI_BUS_ID'   # see issue #152
-        os.environ['CUDA_VISIBLE_DEVICES']= gpu
-        if config is None: 
+        os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'   # see issue #152
+        os.environ['CUDA_VISIBLE_DEVICES'] = gpu
+        if config is None:
             config = op.join(self.package_directory, 'config', 'dockers.json')
         if fileformats is None:
-            self.fileformats = op.join(self.package_directory, 'config', 'fileformats.json')
+            self.fileformats = op.join(
+                self.package_directory, 'config', 'fileformats.json')
         else:
             self.fileformats = fileformats
         try:
@@ -56,7 +60,8 @@ class Segmentor(object):
             self.noOfContainers = len(self.config.keys())
             configfile.close()
         except IOError as e:
-            logging.exception('I/O error({0}): {1}'.format(e.errno, e.strerror))
+            logging.exception(
+                'I/O error({0}): {1}'.format(e.errno, e.strerror))
             raise
         except ValueError:
             logging.exception('Invalid configuration file')
@@ -76,33 +81,41 @@ class Segmentor(object):
 
     def runDummyContainer(self, stop=False):
         command = 'docker run --rm -it hello-world'
-        subprocess.check_call(command, shell = True)
+        subprocess.check_call(command, shell=True)
 
-    def runContainer(self, id, directory):
+    def runContainer(self, id, directory, outputDir, outputName):
         '''
         Runs one container on one patient folder
         '''
-        if self.tty:
-            command = ' docker run --rm -it '
-        else:
-            command = ' docker run --rm '
+        logging.info(
+            'Now running a segmentation with the Docker {}.'.format(id))
+        logging.info('Output will be in {}.'.format(outputDir))
+
+        command = ' docker run --rm -it '
         if self.config[id]['runtime'] == 'nvidia':
             if self.dockerGPU:
-                command = command + '--gpus all -e CUDA_VISIBLE_DEVICES='+str(self.gpu)+' -v ' + str(directory) + ':' + str(self.config[id]['mountpoint']) + ' ' + str(self.config[id]['id']) + ' ' + str(self.config[id]['command'])
+                command = command + '--gpus all -e CUDA_VISIBLE_DEVICES='+str(self.gpu)+' -v ' + str(directory) + ':' + str(
+                    self.config[id]['mountpoint']) + ' ' + str(self.config[id]['id']) + ' ' + str(self.config[id]['command'])
             else:
-                command = command + '--runtime=nvidia -e CUDA_VISIBLE_DEVICES='+str(self.gpu)+' -v ' + str(directory) + ':' + str(self.config[id]['mountpoint']) + ' ' + str(self.config[id]['id']) + ' ' + str(self.config[id]['command'])
+                command = command + '--runtime=nvidia -e CUDA_VISIBLE_DEVICES='+str(self.gpu)+' -v ' + str(directory) + ':' + str(
+                    self.config[id]['mountpoint']) + ' ' + str(self.config[id]['id']) + ' ' + str(self.config[id]['command'])
         else:
-            command = command + '-v ' + str(directory) + ':' + str(self.config[id]['mountpoint']) + ' ' + str(self.config[id]['id']) + ' ' + str(self.config[id]['command'])
+            command = command + ' -v ' + str(directory) + ':' + str(self.config[id]['mountpoint']) + ' ' + str(
+                self.config[id]['id']) + ' ' + str(self.config[id]['command'])
         try:
-            subprocess.check_call(command, shell = True)
+            with open(op.join(outputDir, "{}_{}_output.log".format(outputName.split('.')[0], id)), "w") as f:
+                subprocess.check_call(command, shell=True, stdout=f)
         except Exception as e:
-            logging.error('Segmentation failed for case {} with error: {}'.format(directory, e))
+            logging.error(
+                'Segmentation failed for case {} with error: {}'.format(directory, e))
             if 'exit status 125' in str(e):
-                logging.error('DOCKER DAEMON not running! Please start your Docker runtime.')
+                logging.error(
+                    'DOCKER DAEMON not running! Please start your Docker runtime.')
                 sys.exit(125)
             return False
         if self.verbose:
             logging.info('Container exited without error')
+        # fileh.close()
         return True
 
     def runIterate(self, dir, cid):
@@ -111,27 +124,28 @@ class Segmentor(object):
         logging.info('Looking for BRATS data directories..')
         for fn in os.listdir(dir):
             if not os.path.isdir(os.path.join(dir, fn)):
-                continue # Not a directory
+                continue  # Not a directory
             if 'DE_RI' in fn:
                 logging.info('Found pat data: {}'.format(fn))
                 try:
                     os.makedirs(os.path.join(os.path.join(dir, fn),
-                    'results'))
+                                             'results'))
                 except OSError as err:
                     if err.errno != errno.EEXIST:
                         raise
                 logging.info('Calling Container: {}'.format(cid))
-                if not self.runContainer(cid, os.path.join(dir, fn)):
-                    logging.info('ERROR: Run failed for patient {} with container {}'.format(fn, cid))
+                if not self.runContainer(cid, os.path.join(dir, fn), dir):
+                    logging.info(
+                        'ERROR: Run failed for patient {} with container {}'.format(fn, cid))
                     return False
-                #TODO: rename folder and prepend pat_id
+                # TODO: rename folder and prepend pat_id
                 #rename_folder(img_id, os.path.join(directory, fn), fn)
         return True
 
     def multiSegment(self, tempDir, inputs, method, outputName, outputDir):
         '''
         multiSegment [summary]
-        
+
         Args:
             tempDir ([type]): [description]
             inputs ([type]): [description]
@@ -149,12 +163,14 @@ class Segmentor(object):
                 savepath = op.join(tempDir, ff[key])
                 img = oitk.get_itk_image(img)
                 if self.verbose:
-                    logging.info('[Weborchestra][Info] Writing to path {}'.format(savepath))
+                    logging.info(
+                        '[Weborchestra][Info] Writing to path {}'.format(savepath))
                 oitk.write_itk_image(img, savepath)
             if self.verbose:
                 logging.info('[Weborchestra][Info] Images saved correctly')
-                logging.info('[Weborchestra][Info] Starting the Segmentation with one container now')
-            status = self.runContainer(cid, tempDir)
+                logging.info(
+                    '[Weborchestra][Info] Starting the Segmentation with container {} now'.format(cid))
+            status = self.runContainer(cid, tempDir, outputDir, outputName)
             if status:
                 if self.verbose:
                     logging.info('[Weborchestra][Success] Segmentation saved')
@@ -162,13 +178,15 @@ class Segmentor(object):
                 saveLocation = op.join(outputDir, cid + '_tumor_seg.nii.gz')
                 self._handleResult(cid, resultsDir, outputPath=saveLocation)
             else:
-                logging.exception('Container run for CID {} failed!'.format(cid))
-        fusion.dirFuse(outputDir, method=method, outputPath=op.join(outputDir, outputName))
-    
+                logging.exception(
+                    'Container run for CID {} failed!'.format(cid))
+        fusion.dirFuse(outputDir, method=method,
+                       outputPath=op.join(outputDir, outputName))
+
     def singleSegment(self, tempDir, inputs, cid, outputName, outputDir):
         '''
         singleSegment [summary]
-        
+
         Args:
             tempDir ([type]): [description]
             inputs ([type]): [description]
@@ -181,26 +199,29 @@ class Segmentor(object):
             savepath = op.join(tempDir, ff[key])
             img = oitk.get_itk_image(img)
             if self.verbose:
-                logging.info('[Weborchestra][Info] Writing to path {}'.format(savepath))
+                logging.info(
+                    '[Weborchestra][Info] Writing to path {}'.format(savepath))
             oitk.write_itk_image(img, savepath)
         if self.verbose:
             logging.info('[Weborchestra][Info] Images saved correctly')
-            logging.info('[Weborchestra][Info] Starting the Segmentation with {} now'.format(cid))
-        status = self.runContainer(cid, tempDir)
+            logging.info(
+                '[Weborchestra][Info] Starting the Segmentation with {} now'.format(cid))
+        status = self.runContainer(cid, tempDir, outputDir, outputName)
         if status:
             if self.verbose:
                 logging.info('[Weborchestra][Success] Segmentation saved')
             resultsDir = op.join(tempDir, 'results/')
-            self._handleResult(cid, resultsDir, outputPath=op.join(outputDir, outputName))
+            self._handleResult(
+                cid, resultsDir, outputPath=op.join(outputDir, outputName))
             # delete tmp directory if result was saved elsewhere
         else:
-            logging.error('[Weborchestra][Error] Segmentation failed, see output!')
-
+            logging.error(
+                '[Weborchestra][Error] Segmentation failed, see output!')
 
     def segment(self, t1=None, t1c=None, t2=None, fla=None, cid='mocker', outputPath=None):
         '''
         segment [summary]
-        
+
         Args:
             t1 ([type], optional): [description]. Defaults to None.
             t1c ([type], optional): [description]. Defaults to None.
@@ -209,19 +230,25 @@ class Segmentor(object):
             cid (str, optional): [description]. Defaults to 'mocker'.
             outputPath ([type], optional): [description]. Defaults to None.
         '''
-        #### Call output method here
+        # Call output method here
         outputName, outputDir = self._whereDoesTheFileGo(outputPath, t1, cid)
-        logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s', filename=op.join(outputDir, 'segmentor.log'),level=logging.DEBUG)
+        # set up logging (for all internal functions)
+        logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s', filename=op.join(
+            outputDir, 'segmentor_high_level.log'), level=logging.DEBUG)
+        logging.getLogger().addHandler(logging.StreamHandler())
         logging.debug('DIRNAME is: ' + outputDir)
         logging.debug('FILENAME is: ' + outputName)
-        logging.info('Now running a new set of segmentations on input: {}'.format(op.dirname(t1)))
-        # switch between 
-        inputs = {'t1':t1, 't2':t2, 't1c':t1c, 'fla':fla}
+        logging.info(
+            'Now running a new set of segmentations on input: {}'.format(op.dirname(t1)))
+        # switch between
+        inputs = {'t1': t1, 't2': t2, 't1c': t1c, 'fla': fla}
         # create temporary directory for storage
         storage = tempfile.TemporaryDirectory(dir=self.package_directory)
+        os.chmod(storage.name, 0o777)
         tempDir = op.abspath(storage.name)
         resultsDir = op.join(tempDir, 'results')
         os.mkdir(resultsDir)
+        os.chmod(resultsDir, 0o777)
         logging.debug(tempDir)
         logging.debug(resultsDir)
 
@@ -237,7 +264,7 @@ class Segmentor(object):
     ### Private utility methods below ###
 
     def _whereDoesTheFileGo(self, outputPath, t1path, cid):
-        if outputPath is None: 
+        if outputPath is None:
             outputDir = op.join(op.dirname(t1path), 'output')
             outputName = cid + '_segmentation.nii.gz'
         elif outputPath.endswith('.nii.gz'):
@@ -247,18 +274,19 @@ class Segmentor(object):
             outputDir = op.dirname(outputPath)
             outputName = op.basename(outputPath)
             # if only a filename is passed, use the t1 directory
-            if outputDir == '': 
+            if outputDir == '':
                 outputDir = op.join(op.dirname(t1path), 'output')
-        else: 
+        else:
             outputDir = outputName = None
 
-        if outputDir is None or outputName is None: 
-            raise ValueError('The outputPath is ambiguous and cannot be determined! path: {}, t1path: {}, cid: {}'.format(outputPath, t1path, cid))
-        # build abspaths: 
+        if outputDir is None or outputName is None:
+            raise ValueError('The outputPath is ambiguous and cannot be determined! path: {}, t1path: {}, cid: {}'.format(
+                outputPath, t1path, cid))
+        # build abspaths:
         outputDir = op.abspath(outputDir)
-        try: 
+        try:
             os.makedirs(outputDir, exist_ok=True)
-        except Exception as e: 
+        except Exception as e:
             print('could not create target directory: {}'.format(outputDir))
             raise e
         return outputName, outputDir
@@ -271,26 +299,29 @@ class Segmentor(object):
         # Todo: Find segmentation result
         contents = glob.glob(op.join(directory, cid+'*.nii*'))
         if len(contents) == 0:
-            contents = glob.glob(op.join(directory,'*tumor*.nii*'))
+            contents = glob.glob(op.join(directory, '*tumor*.nii*'))
         if len(contents) < 1:
-            logging.error('[Weborchestra - Filehandling][Error] No segmentation saved, the container run has most likely failed.')
+            logging.error(
+                '[Weborchestra - Filehandling][Error] No segmentation saved, the container run has most likely failed.')
         elif len(contents) > 1:
-            logging.warning('[Weborchestra - Filehandling][Warning] Multiple Segmentations found')
+            logging.warning(
+                '[Weborchestra - Filehandling][Warning] Multiple Segmentations found')
             print('found files: {}'.format(contents))
             img = oitk.get_itk_image(contents[0])
             labels = 0
             exportImg = None
-            for _ , c in enumerate(contents): 
+            for _, c in enumerate(contents):
                 img = oitk.get_itk_image(c)
                 if labels < len(np.unique(oitk.get_itk_array(img))):
                     exportImg = img
                     labels = len(np.unique(oitk.get_itk_array(img)))
             oitk.write_itk_image(exportImg, op.join(outputPath))
-            logging.warning('[Weborchestra - Filehandling][Warning] Segmentation with most labels ({}) for cid {} saved'.format(labels, cid))
+            logging.warning(
+                '[Weborchestra - Filehandling][Warning] Segmentation with most labels ({}) for cid {} saved'.format(labels, cid))
             return
         img = oitk.get_itk_image(contents[0])
         for c in contents:
-            os.remove(op.join(directory,c))
+            os.remove(op.join(directory, c))
         oitk.write_itk_image(img, outputPath)
 
     def _format(self, fileformat, configpath, verbose=True):
@@ -300,7 +331,8 @@ class Segmentor(object):
             config = json.load(configfile)
             configfile.close()
         except IOError as e:
-            logging.exception('I/O error({0}): {1}'.format(e.errno, e.strerror))
+            logging.exception(
+                'I/O error({0}): {1}'.format(e.errno, e.strerror))
             raise
         except ValueError:
             logging.exception('Invalid configuration file')
@@ -308,6 +340,6 @@ class Segmentor(object):
         except:
             logging.exception('Unexpected Error!')
             raise
-        logging.info('[Weborchestra][Success]Loaded fileformat: {}'.format(config[fileformat]))
+        logging.info('[Weborchestra][Success]Loaded fileformat: {}'.format(
+            config[fileformat]))
         return config[fileformat]
-

@@ -6,7 +6,8 @@
         "runtime":"runc",
         "id":"econib/brats-2018",
         "command":" ",
-        "mountpoint":"/data"
+        "mountpoint":"/data",
+        "citation": "https://link.springer.com/chapter/10.1007/978-3-030-11726-9_2"
     },
     "mic-dkfz":{
         "name":"mic-dkfz",
@@ -15,7 +16,8 @@
         "runtime":"nvidia",
         "id":"fabianisensee/isen2018",
         "command":"python3.6 predict_patient.py",
-        "mountpoint":"/data"
+        "mountpoint":"/data",
+        "citation": "https://link.springer.com/chapter/10.1007/978-3-030-11726-9_21"
     },
     "scan":{
         "name":"scan",
@@ -24,7 +26,8 @@
         "runtime":"nvidia",
         "id":"mckinleyscan/brats:v1",
         "command":"python DeepSCAN_BRATS.py",
-        "mountpoint":"/data"
+        "mountpoint":"/data",
+        "citation": "https://link.springer.com/chapter/10.1007/978-3-030-11726-9_40"
     },
     "xfeng":{
         "name":"xfeng",
@@ -33,7 +36,8 @@
         "runtime":"nvidia",
         "id":"xf4j/brats18",
         "command":"python /brats18/docker_run_survival.py",
-        "mountpoint":"/data"
+        "mountpoint":"/data",
+        "citation": "https://link.springer.com/chapter/10.1007/978-3-030-11726-9_25"
     },
     "lfb_rwth":{
         "name":"lfb_rwth",
@@ -42,7 +46,8 @@
         "runtime":"runc",
         "id":"leonweninger/brats18_segmentation",
         "command":" ",
-        "mountpoint":"/data"
+        "mountpoint":"/data",
+        "citation": "https://link.springer.com/chapter/10.1007/978-3-030-11726-9_1"
     },
     "gbmnet":{
         "name":"gbmnet",
@@ -51,7 +56,8 @@
         "runtime":"runc",
         "id":"nknuecht/gbmnet18",
         "command":"python evaluate.py",
-        "mountpoint":"/data"
+        "mountpoint":"/data",
+        "citation": "https://link.springer.com/chapter/10.1007/978-3-030-11726-9_22"
     },
     "zyx_2019":{
         "name":"zyx_2019",
@@ -60,7 +66,8 @@
         "runtime":"nvidia",
         "id":"jiaocha/zyxbrats",
         "command":" ",
-        "mountpoint":"/data"
+        "mountpoint":"/data",
+        "citation": "https://link.springer.com/chapter/10.1007/978-3-030-32248-9_29"
     },
     "scan_2019":{
         "name":"scan_2019",
@@ -69,6 +76,7 @@
         "runtime":"nvidia",
         "id":"scan/brats2019",
         "command":"python DeepSCAN_BRATS_2019.py",
-        "mountpoint":"/data"
+        "mountpoint":"/data",
+        "citation": "https://link.springer.com/chapter/10.1007/978-3-030-46640-4_36"
     }
 }
