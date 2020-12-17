@@ -79,14 +79,14 @@
         "mountpoint":"/data",
         "citation": "https://link.springer.com/chapter/10.1007/978-3-030-46640-4_36"
     },
-    "isen2020":{
-        "name":"isen2020",
+    "isen-20":{
+        "name":"iisen-20",
         "author":"Fabian Isensee",
         "email": "f.isensee@dkfz-heidelberg.de",
         "citation": "TODO",
         "fileformat":"gz-b18",
         "runtime":"nvidia",
-        "id":"fabianisensee/isen2020:latest",
+        "id":"brats/isen-20",
         "command":"python runner.py",
         "mountpoint":"/app/data/",
         "user_mode": true,
