@@ -48,7 +48,7 @@ def start_docker(exam_import_folder=None,
 
     # generate subprocess call
     command = [bashscript, "3", dicom_import_folder,
-               nifti_export_folder, exam_import_folder, exam_export_folder]
+               nifti_export_folder, exam_import_folder, exam_export_folder, gpuid]
     print(*command)
 
     cwd = pathlib.Path(__file__).resolve().parent

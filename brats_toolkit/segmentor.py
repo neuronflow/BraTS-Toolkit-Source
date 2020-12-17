@@ -9,23 +9,21 @@
 __version__ = '0.1'
 __author__ = 'Christoph Berger'
 
-import json
-import subprocess
-import os
 import errno
-import sys
-
-
-import tempfile
 import glob
+import json
 import logging
-
+import os
 import os.path as op
+import subprocess
+import sys
+import tempfile
+
 import numpy as np
 
-from .util import own_itk as oitk
-from .util import filemanager as fm
 from . import fusionator
+from .util import filemanager as fm
+from .util import own_itk as oitk
 
 
 class Segmentor(object):
@@ -91,19 +89,38 @@ class Segmentor(object):
             'Now running a segmentation with the Docker {}.'.format(id))
         logging.info('Output will be in {}.'.format(outputDir))
 
-        command = ' docker run --rm -it '
-        if self.config[id]['runtime'] == 'nvidia':
-            if self.dockerGPU:
-                command = command + '--gpus all -e CUDA_VISIBLE_DEVICES='+str(self.gpu)+' -v ' + str(directory) + ':' + str(
-                    self.config[id]['mountpoint']) + ' ' + str(self.config[id]['id']) + ' ' + str(self.config[id]['command'])
-            else:
-                command = command + '--runtime=nvidia -e CUDA_VISIBLE_DEVICES='+str(self.gpu)+' -v ' + str(directory) + ':' + str(
-                    self.config[id]['mountpoint']) + ' ' + str(self.config[id]['id']) + ' ' + str(self.config[id]['command'])
+        params = self.config[id]  # only references, doesn't copy
+        command = ' docker run --rm -it'
+        # assemble the rest of the command
+        flags = params.get('flags', '')
+        # check if we need to map the user
+        if params.get('user_mode', False):
+            user_flags = '--user $(id -u):$(id -g)'
         else:
-            command = command + ' -v ' + str(directory) + ':' + str(self.config[id]['mountpoint']) + ' ' + str(
-                self.config[id]['id']) + ' ' + str(self.config[id]['command'])
+            user_flags = ''
+        # assemble the gpu flags if needed
+        if params['runtime'] == 'nvidia':
+            if self.dockerGPU:
+                # TODO clean this up
+                gpu_flags = '--gpus device=' + str(self.gpu)
+            else:
+                gpu_flags = '--runtime=nvidia -e CUDA_VISIBLE_DEVICES=' + \
+                    str(self.gpu)
+        else:
+            gpu_flags = ''
+        # assemble directory mapping
+        volume = '-v ' + str(directory) + ':' + str(params['mountpoint'])
+        # assemble execution command
+        call = str(params['command'])
+
+        # stick everything together
+        command = command + ' ' + user_flags + ' ' + gpu_flags + ' ' + \
+            flags + ' ' + volume + ' ' + params['id'] + ' ' + call
+
+        if self.verbose:
+            print('Executing: {}'.format(command))
         try:
-            with open(op.join(outputDir, "{}_{}_output.log".format(outputName.split('.')[0], id)), "w") as f:
+            with open(op.join(outputDir, '{}_output.log'.format(outputName.split('.')[0])), 'w') as f:
                 subprocess.check_call(command, shell=True, stdout=f)
         except Exception as e:
             logging.error(
@@ -139,7 +156,7 @@ class Segmentor(object):
                         'ERROR: Run failed for patient {} with container {}'.format(fn, cid))
                     return False
                 # TODO: rename folder and prepend pat_id
-                #rename_folder(img_id, os.path.join(directory, fn), fn)
+                # rename_folder(img_id, os.path.join(directory, fn), fn)
         return True
 
     def multiSegment(self, tempDir, inputs, method, outputName, outputDir):
@@ -170,6 +187,8 @@ class Segmentor(object):
                 logging.info('[Weborchestra][Info] Images saved correctly')
                 logging.info(
                     '[Weborchestra][Info] Starting the Segmentation with container {} now'.format(cid))
+
+            status = self.runContainer(cid, tempDir, outputDir)
             status = self.runContainer(cid, tempDir, outputDir, outputName)
             if status:
                 if self.verbose:
@@ -244,10 +263,12 @@ class Segmentor(object):
         inputs = {'t1': t1, 't2': t2, 't1c': t1c, 'fla': fla}
         # create temporary directory for storage
         storage = tempfile.TemporaryDirectory(dir=self.package_directory)
+        # TODO this is a potential security hazzard as all users can access the files now, but currently it seems the only way to deal with bad configured docker installations
         os.chmod(storage.name, 0o777)
         tempDir = op.abspath(storage.name)
         resultsDir = op.join(tempDir, 'results')
         os.mkdir(resultsDir)
+        # TODO this is a potential security hazzard as all users can access the files now, but currently it seems the only way to deal with bad configured docker installations
         os.chmod(resultsDir, 0o777)
         logging.debug(tempDir)
         logging.debug(resultsDir)
@@ -297,7 +318,12 @@ class Segmentor(object):
         Segmentation result before returning
         '''
         # Todo: Find segmentation result
-        contents = glob.glob(op.join(directory, cid+'*.nii*'))
+        contents = glob.glob(
+            op.join(directory, 'tumor_' + cid + '_class.nii*'))
+        if len(contents) == 0:
+            contents = glob.glob(op.join(directory, 'tumor_*_class.nii*'))
+        if len(contents) == 0:
+            contents = glob.glob(op.join(directory, cid + '*.nii*'))
         if len(contents) == 0:
             contents = glob.glob(op.join(directory, '*tumor*.nii*'))
         if len(contents) < 1:

@@ -6,7 +6,8 @@ if [ $# -eq 0 ]; then
 fi
 
 docker stop greedy_elephant
-docker run --rm -d --name=greedy_elephant --gpus all -p 5000:5000 -p 9181:9181 -v "$2":"/data/import/dicom_import" -v "$3":"/data/export/nifti_export" -v "$4":"/data/import/exam_import" -v "$5":"/data/export/exam_export" projectelephant/server redis-server
+# TODO set gpu
+docker run --rm -d --name=greedy_elephant --gpus $6 -p 5000:5000 -p 9181:9181 -v "$2":"/data/import/dicom_import" -v "$3":"/data/export/nifti_export" -v "$4":"/data/import/exam_import" -v "$5":"/data/export/exam_export" projectelephant/server redis-server
 #wait until everything is started up
 sleep 10
 #start x-server for non-gui gui

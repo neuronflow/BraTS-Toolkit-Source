@@ -1,7 +1,11 @@
-from brats_toolkit import segmentor, fusionator
+import sys
 
-seg = segmentor.Segmentor(
-    config='brats_toolkit/config/dockers_demo.json', verbose=True)
+from brats_toolkit import fusionator, segmentor
+
+seg = segmentor.Segmentor(config='brats_toolkit/config/dockers_demo.json', verbose=True)
+seg = segmentor.Segmentor(verbose=True)
+seg.runContainer('mic-dkfz', '/test', '/test', 'testseg.nii.gz')
+sys.exit(0)
 seg2 = segmentor.Segmentor()
 fus = fusionator.Fusionator()
 

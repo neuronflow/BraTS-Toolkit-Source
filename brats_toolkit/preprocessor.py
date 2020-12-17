@@ -14,6 +14,7 @@ class Preprocessor(object):
         self.clientVersion = "0.0.1"
         self.confirmationRequired = True
         self.mode = "cpu"
+        self.gpuid = "0"
 
         # init sio client
         self.sio = socketio.Client()
@@ -88,6 +89,7 @@ class Preprocessor(object):
 
         # create temp dir
         storage = tempfile.TemporaryDirectory()
+        # TODO this is a potential security hazzard as all users can access the files now, but currently it seems the only way to deal with bad configured docker installations
         os.chmod(storage.name, 0o777)
         dockerFolder = os.path.abspath(storage.name)
         tempFolder = os.path.join(dockerFolder, os.path.basename(outputFolder))
@@ -110,15 +112,17 @@ class Preprocessor(object):
         if confirm != True:
             self.confirmationRequired = False
         self.mode = mode
+        self.gpuid = gpuid
 
         if self.noDocker != True:
             stop_docker()
             if skipUpdate != True:
                 update_docker()
             start_docker(exam_import_folder=exam_import_folder, exam_export_folder=exam_export_folder,
-                         dicom_import_folder=dicom_import_folder, nifti_export_folder=nifti_export_folder, mode=self.mode)
+                         dicom_import_folder=dicom_import_folder, nifti_export_folder=nifti_export_folder, mode=self.mode, gpuid=self.gpuid)
 
         # setup connection
+        # TODO do this in a more elegant way and somehow check whether docker is up and running before connect
         self.sio.sleep(5)  # wait 5 secs for docker to start
         self.connect_client()
         self.sio.wait()
