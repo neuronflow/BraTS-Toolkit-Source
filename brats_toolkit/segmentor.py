@@ -90,7 +90,7 @@ class Segmentor(object):
         logging.info('Output will be in {}.'.format(outputDir))
 
         params = self.config[id]  # only references, doesn't copy
-        command = ' docker run --rm -it'
+        command = 'docker run --rm'
         # assemble the rest of the command
         flags = params.get('flags', '')
         # check if we need to map the user

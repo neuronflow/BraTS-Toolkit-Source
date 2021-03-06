@@ -5,7 +5,7 @@ with open('README.md', 'r') as fh:
 
 setuptools.setup(
     name='brats_toolkit',
-    version='0.4',
+    version='0.4.1',
     author='Christoph Berger, Florian Kofler',
     author_email='c.berger@tum.de',
     description='Preprocessing, Segmentation and Fusion for the BraTS challenge',
@@ -17,7 +17,7 @@ setuptools.setup(
     install_requires=[
         'SimpleITK',
         'numpy',
-        'python-socketio',
+        'python-socketio==5.0.4',
         'requests'
     ],
     entry_points={
