@@ -15,10 +15,12 @@ setuptools.setup(
     packages=['brats_toolkit'],
     zip_safe=False,
     install_requires=[
-        'SimpleITK',
-        'numpy',
+        'SimpleITK==1.2.4',
+        'numpy==1.20.1',
         'python-socketio==5.0.4',
-        'requests'
+        'python-engineio==3.14.2',
+        'python-socketio==4.6.1',
+        'requests==2.24.0'
     ],
     entry_points={
         'console_scripts': [
