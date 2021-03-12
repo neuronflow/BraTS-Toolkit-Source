@@ -35,21 +35,21 @@ def start_docker(exam_import_folder=None,
     # start the right docker
     operatingSystem = platform.system()
     if operatingSystem == "Windows":
-        bashscript = os.path.abspath(os.path.normpath(
-            './backend_scripts/win_docker.cmd'))
+        bashscript = os.path.normpath(
+            './backend_scripts/win_docker.cmd')
     else:
         if mode == "cpu":
-            bashscript = os.path.abspath(os.path.normpath(
-                './backend_scripts/unix_docker.sh'))
+            bashscript = os.path.normpath(
+                './backend_scripts/unix_docker.sh')
         elif mode == "robex":
-            bashscript = os.path.abspath(os.path.normpath(
-                './backend_scripts/unix_docker.sh'))
+            bashscript = os.path.normpath(
+                './backend_scripts/unix_docker.sh')
         elif mode == "gpu":
-            bashscript = os.path.abspath(os.path.normpath(
-                './backend_scripts/unix_docker_gpu.sh'))
+            bashscript = os.path.normpath(
+                './backend_scripts/unix_docker_gpu.sh')
         elif mode == "gpu_hdbet":
-            bashscript = os.path.abspath(os.path.normpath(
-                './backend_scripts/unix_docker_gpu.sh'))
+            bashscript = os.path.normpath(
+                './backend_scripts/unix_docker_gpu.sh')
 
     # generate subprocess call
     command = [bashscript, "3", dicom_import_folder,
