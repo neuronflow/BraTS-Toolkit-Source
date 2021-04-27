@@ -159,7 +159,7 @@ def batchpreprocess():
             gpuid = str(args.gpuid)
         else:
             gpuid = '0'
-        pre.batch_preprocess(exam_import_folder=args.input, exam_export_folder=args.output, mode=mode, confirm=args.confirm, skipUpdate=args.skipUpdate, gpuid=gpuid)
+        pre.batch_preprocess(exam_import_folder=args.input, exam_export_folder=args.output, mode=mode, confirm=args.confirm, skipUpdate=args.skipupdate, gpuid=gpuid)
     except subprocess.CalledProcessError as e:
         # Ignoring errors happening in the Docker Process, otherwise we'd e.g. get error messages on exiting the Docker via CTRL+D.
         pass
@@ -203,7 +203,7 @@ def singlepreprocess():
             gpuid = str(args.gpuid)
         else:
             gpuid = '0'
-        pre.single_preprocess(t1File=args.t1, t1cFile=args.t1c, t2File=args.t2, flaFile=args.fla, outputFolder=args.output, mode=mode, confirm=args.confirm, skipUpdate=args.skipUpdate, gpuid=gpuid)
+        pre.single_preprocess(t1File=args.t1, t1cFile=args.t1c, t2File=args.t2, flaFile=args.fla, outputFolder=args.output, mode=mode, confirm=args.confirm, skipUpdate=args.skipupdate, gpuid=gpuid)
     except subprocess.CalledProcessError as e:
         # Ignoring errors happening in the Docker Process, otherwise we'd e.g. get error messages on exiting the Docker via CTRL+D.
         pass
