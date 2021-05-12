@@ -5,9 +5,9 @@ with open('README.md', 'r') as fh:
 
 setuptools.setup(
     name='brats_toolkit',
-    version='0.4.1',
+    version='0.4.2',
     author='Christoph Berger, Florian Kofler',
-    author_email='c.berger@tum.de',
+    author_email='florian.kofler@tum.de, c.berger@tum.de',
     description='Preprocessing, Segmentation and Fusion for the BraTS challenge',
     long_description=long_description,
     long_description_content_type='text/markdown',
