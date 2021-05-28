@@ -15,7 +15,7 @@ setuptools.setup(
     packages=['brats_toolkit'],
     zip_safe=False,
     install_requires=[
-        'SimpleITK==1.2.4',
+        'SimpleITK==2.0.2',
         'numpy==1.20.1',
         'python-engineio==3.14.2',
         'python-socketio==4.6.1',
