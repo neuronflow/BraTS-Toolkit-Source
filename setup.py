@@ -11,11 +11,10 @@ setuptools.setup(
     description='Preprocessing, Segmentation and Fusion for the BraTS challenge',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/neuronflow/BraTS-Toolkit-Source',
+    url='https://github.com/LMZimmer/BraTS-Toolkit-Source',
     packages=['brats_toolkit'],
     zip_safe=False,
     install_requires=[
-        #'SimpleITK==2.0.2',
         'numpy==1.22.0',
         'python-engineio==3.14.2',
         'python-socketio==4.6.1',
